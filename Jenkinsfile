@@ -1,35 +1,48 @@
-/*
 pipeline {
-    agent { docker { image 'maven:3.3.3' } }
-    stages {
-        stage('build') {
-            steps {
-                sh 'mvn --version'
-            }
+    agent {
+        docker {
+            image 'maven:3-alpine'
+            args '-v /root/.m2:/root/.m2'
         }
     }
-}
-*/
 
-pipeline {
-    agent any
     stages {
-        stage('Command Line') {
+        stage('Initial commands') {
             steps {
                 sh '''
-                    whoami
                     pwd
                 '''
+            }
+        }
+
+        stage('Environment') {
+            steps {
+                echo "ENVIRONMENT VARS: #{env}"
             }
         }
 
         stage('Build') {
             steps {
                 retry(3) {
-                    sh 'echo 1'
+                    sh 'mvn clean package'
                 }
             }
         }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        //stage('Publish') {}
+        //stage('Dockerize') {}
+        //stage('Deploy') {}
     }
     post {
         always {
