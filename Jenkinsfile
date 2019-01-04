@@ -15,11 +15,6 @@ pipeline {
             }
         }
 
-        stage('Environment') {
-            steps {
-                echo "ENVIRONMENT VARS: #{env}"
-            }
-        }
 
         stage('Build') {
             steps {
@@ -37,13 +32,32 @@ pipeline {
                 always {
                     junit 'target/surefire-reports/*.xml'
                 }
+                success {
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                }
             }
         }
 
-        //stage('Publish') {}
-        //stage('Dockerize') {}
-        //stage('Deploy') {}
+        stage('Deploy - Staging') {
+            steps {
+                sh './deploy.sh staging'
+                sh './smoke_test.sh'
+            }
+        }
+
+        stage('Ask to proceed') {
+            steps {
+                input 'Would you like to deploy to production?'
+            }
+        }
+
+        stage('Deploy - Production') {
+            steps {
+                sh './deploy.sh prod'
+            }
+        }
     }
+    
     post {
         always {
             echo 'The results are in:'
