@@ -2,7 +2,7 @@
 # Create the volume first?
 # docker create volume jenkins_home
 
-JENKINS_HOME=/home/bryon/jenkins_home
+JENKINS_HOME=/home/$USER/jenkins_home
 docker run \
     -p 8080:8080 \
     -p 50000:50000 \
